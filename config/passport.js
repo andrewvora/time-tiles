@@ -7,9 +7,122 @@ const LocalAuth = require('../app/models/local-auth')
 const User = require('../app/models/user')
 const database = require('./database')
 
-const USERS_TABLE = "users"
+function findUserByEmail(connection, email) {
+   return new Promise((resolve, reject) => {
+      User.findByEmail(connection, email, (err, user) => {
+         if (err) {
+            reject(err)
+         } else {
+            resolve(user)
+         }
+      })
+   })
+}
 
-module.exports = function(passport) {
+function findUserByUsername(connection, username) {
+   return new Promise((resolve, reject) => {
+      User.findByUsername(connection, username, (err, user) => {
+         if (err) {
+            reject(err)
+         } else {
+            resolve(user)
+         }
+      })
+   })
+}
+
+function saveUser(connection, user) {
+   return new Promise((resolve, reject) => {
+      User.save(connection, user, (err, user) => {
+         if (err) {
+            reject(err)
+         } else {
+            resolve(user)
+         }
+      })
+   })
+}
+
+function saveLocalAuth(connection, localAuth) {
+   return new Promise((resolve, reject) => {
+      LocalAuth.save(connection, localAuth, (err, result) => {
+         if (err) {
+            reject(err)
+         } else {
+            resolve(result)
+         }
+      })
+   })
+}
+
+function findLocalAuth(connection, user) {
+   return new Promise((resolve, reject) => {
+      LocalAuth.findByUserId(connection, user.id, (err, auth) => {
+         if (err) {
+            reject(err)
+         } else {
+            resolve(auth)
+         }
+      })
+   })
+}
+
+async function localSignup(connection, request, email, password) {
+   const username = request.body.username
+   const userByEmail = await findUserByEmail(connection, email)
+   if (userByEmail) {
+      return Promise.reject('That email is already taken.')
+   }
+
+   const userByUsername = await findUserByUsername(connection, username)
+   if (userByUsername) {
+      return Promise.reject('That username is already taken.')
+   }
+
+   const user = new User()
+   user.email = email
+   user.username = username
+   user.created_at = new Date().toISOString().slice(0, 19).replace('T', ' ')
+
+   const savedUser = await saveUser(connection, user)
+   if (!savedUser || !savedUser.id) {
+      return Promise.reject('Could not create account.')
+   }
+
+   const localAuth = new LocalAuth()
+   localAuth.user_id = savedUser.id
+   localAuth.password = UserAuth.generateHash(password)
+
+   const savedLocalAuth = await saveLocalAuth(connection, localAuth)
+   if (!savedLocalAuth || !savedLocalAuth.id) {
+      return Promise.reject('Could not create account.')
+   }
+
+   return savedUser
+}
+
+async function localLogin(connection, request, email, password, next) {
+   const user = await findUserByEmail(connection, email)
+   if (!user) {
+      return Promise.reject()
+   }
+
+   const localAuth = await findLocalAuth(connection, user)
+   if (!localAuth) {
+      return Promise.reject()
+   }
+
+   const userAuth = new UserAuth()
+   userAuth.local = localAuth
+
+   if(userAuth.isValidPassword(password)) {
+      return user
+   } else {
+      return Promise.reject()
+   }
+}
+
+module.exports = function(passport, logging) {
     // session serialization logic ======================
    passport.serializeUser((user, next) => {
       next(null, user.id)
@@ -31,54 +144,19 @@ module.exports = function(passport) {
       passwordField: 'password',
       passReqToCallback: true
    }, (request, email, password, done) => {
-      const connection = database()
-      const next = (err, response, flash) => {
-         connection.end()
-         done(err, response, flash)
-      }
-
       process.nextTick(() => {
-         const username = request.body.username
+         const connection = database()
+         const callback = (err, response, flash) => {
+            connection.end()
+            done(err, response, flash)
+         }
 
-         User.findByEmail(connection, email, (err, user) => {
-            if(err) {
-               return next(err)
-            } else if(user) {
-               return next(null, false, request.flash('signupMessage', 'That email is already taken'))
-            } else {
-               User.findByUsername(connection, username, (err, user) => {
-                  if(err) {
-                     return next(err)
-                  } else if(user) {
-                     return next(null, false, request.flash('signupMessage', 'That username is already taken'))
-                  } else {
-                     const user = new User()
-                     user.email = email
-                     user.username = username
-                     user.created_at = new Date().toISOString().slice(0, 19).replace('T', ' ')
-
-                     // const connection = database()
-                     User.save(connection, user, (err, user) => {
-                        if(err) {
-                            return next(err)
-                        }
-
-                        const localAuth = new LocalAuth()
-                        localAuth.user_id = user.id
-                        localAuth.password = UserAuth.generateHash(password)
-
-                        // const connection = database()
-                        LocalAuth.save(connection, localAuth, (err, result) => {
-                           if(err) {
-                              return next(err)
-                           }
-
-                           next(null, user)
-                        })
-                     })
-                  }
-               })
-            }
+         localSignup(connection, request, email, password).then((user) => {
+            console.log('user:', user)
+            callback(null, user)
+         }).catch((error) => {
+            console.log('error:', error)
+            callback(null, null, request.flash('signupMessage', error))
          })
       })
    })) // end passport-use
@@ -89,38 +167,17 @@ module.exports = function(passport) {
       passReqToCallback: true
    }, (request, email, password, done) => {
       const connection = database()
-      const next = (err, response, flash) => {
+      const callback = (err, response, flash) => {
          connection.end()
          done(err, response, flash)
       }
 
       process.nextTick(() => {
-         User.findByEmail(connection, email, (err, user) => {
-            if(err) {
-               return next(err)
-            }
-            if(!user) {
-               next(null, false, request.flash('loginMessage', "Hmm, we don't seem to recognize that email"))
-            }
-
-            LocalAuth.findByUserId(connection, user.id, (err, auth) => {
-               if(err) {
-                  return next(err)
-               }
-
-               if(!auth) {
-                  const message = "Hmm, seems you don't have an account with us. Try Google or Facebook login."
-                  next(null, false, request.flash('loginMessage', message))
-               }
-
-               const userAuth = new UserAuth()
-               userAuth.local = auth
-               if(userAuth.isValidPassword(password)) {
-                  next(null, user)
-               } else {
-                  next(null, false, request.flash('loginMessage', "Incorrect email or password."))
-               }
-            })
+         localLogin(connection, request, email, password).then((user) => {
+            callback(null, user)
+         }).catch(() => {
+            const message = "Invalid email or password!"
+            callback(null, null, request.flash('loginMessage', message))
          })
       })
    }))

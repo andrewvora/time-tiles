@@ -1,8 +1,12 @@
+'use strict'
+
 /**
  * @param app - the global instance of Express
  * @param passport - the global instance of Passport
+ * @param security - the global security instance for the app
+ * @param logging - the global logging instance for the app
  */
-module.exports = function(app, passport) {
+module.exports = function(app, passport, security, logging) {
    // home ==============================
    app.get('/', (request, response) => {
       response.render('index.ejs', {
@@ -12,15 +16,23 @@ module.exports = function(app, passport) {
 
    // login ==============================
    app.get('/login', (request, response) => {
-      response.render('login.ejs', {
-         message: request.flash('loginMessage')
-      })
+      if (request.isAuthenticated()) {
+         response.redirect('/')
+      } else {
+         response.render('login.ejs', {
+            message: request.flash('loginMessage')
+         })
+      }
    })
 
    app.get('/signup', (request, response) => {
-      response.render('signup.ejs', {
-         message: request.flash('signupMessage')
-      })
+      if (request.isAuthenticated()) {
+         response.redirect('/')
+      } else {
+         response.render('signup.ejs', {
+            message: request.flash('signupMessage')
+         })
+      }
    })
 
    app.post('/signup', passport.authenticate('local-signup', {
@@ -49,15 +61,35 @@ module.exports = function(app, passport) {
    }
 
    // api ==============================
-   app.get('/v1/tiles', isAuthorized, (request, response) => {
+   app.post('/api/v1/authenticate', (request, response) => {
+      response.setHeader('Content-Type', 'application/json')
+
+      security.getToken(request.body.username, request.body.password)
+         .then((token) => {
+            response.send({
+               token: token
+            })
+         }).catch((e) => {
+            const errorResponse = JSON.stringify({
+               message: e.toString()
+            })
+
+            response.status(403).send(errorResponse)
+         })
+   })
+
+   app.get('/api/v1/tiles', hasValidToken, (request, response) => {
+      // TODO: actually send back user's tiles
       response.send(request)
    })
 
-   app.get('/v1/tiles/:id', isAuthorized, (request, response) => {
+   app.get('/api/v1/tiles/:id', hasValidToken, (request, response) => {
+      // TODO: actually send back user's tiles
       response.send(request)
    })
 
-   function isAuthorized(request, response, next) {
+   function hasValidToken(request, response, next) {
+      // TODO: do token authentication
       return next()
    }
 }

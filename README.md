@@ -21,6 +21,7 @@ In `app/config/config.json` have the following content:
     "password": "db password",
     "database": "db database name"
   },
+  "jwt_secret": "secret for JWT tokens",
   "session_secret": "secret for session storage"
 }
 
