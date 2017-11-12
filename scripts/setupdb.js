@@ -12,7 +12,6 @@ const GOOGLE_LOGIN_TABLE = 'google_login'
 const FACEBOOK_LOGIN_TABLE = 'facebook_login'
 const TILES_TABLE = 'tiles'
 
-// TODO: add delete cascade foreign keys
 // collect parameters
 function getHost(next) {
   input.question('Enter MySQL host: ', (answer) => {

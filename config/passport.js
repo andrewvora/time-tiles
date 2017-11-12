@@ -7,64 +7,24 @@ const LocalAuth = require('../app/models/local-auth')
 const User = require('../app/models/user')
 const database = require('./database')
 
-function findUserByEmail(connection, email) {
-   return new Promise((resolve, reject) => {
-      User.findByEmail(connection, email, (err, user) => {
-         if (err) {
-            reject(err)
-         } else {
-            resolve(user)
-         }
-      })
-   })
+async function findUserByEmail(connection, email) {
+   return await User.findByEmail(connection, email)
 }
 
-function findUserByUsername(connection, username) {
-   return new Promise((resolve, reject) => {
-      User.findByUsername(connection, username, (err, user) => {
-         if (err) {
-            reject(err)
-         } else {
-            resolve(user)
-         }
-      })
-   })
+async function findUserByUsername(connection, username) {
+   return await User.findByUsername(connection, username)
 }
 
-function saveUser(connection, user) {
-   return new Promise((resolve, reject) => {
-      User.save(connection, user, (err, user) => {
-         if (err) {
-            reject(err)
-         } else {
-            resolve(user)
-         }
-      })
-   })
+async function saveUser(connection, user) {
+   return await User.save(connection, user)
 }
 
-function saveLocalAuth(connection, localAuth) {
-   return new Promise((resolve, reject) => {
-      LocalAuth.save(connection, localAuth, (err, result) => {
-         if (err) {
-            reject(err)
-         } else {
-            resolve(result)
-         }
-      })
-   })
+async function saveLocalAuth(connection, localAuth) {
+   return await LocalAuth.save(connection, localAuth)
 }
 
-function findLocalAuth(connection, user) {
-   return new Promise((resolve, reject) => {
-      LocalAuth.findByUserId(connection, user.id, (err, auth) => {
-         if (err) {
-            reject(err)
-         } else {
-            resolve(auth)
-         }
-      })
-   })
+async function findLocalAuth(connection, user) {
+   return await LocalAuth.findByUserId(connection, user.id)
 }
 
 async function localSignup(connection, request, email, password) {
@@ -79,19 +39,21 @@ async function localSignup(connection, request, email, password) {
       return Promise.reject('That username is already taken.')
    }
 
-   const user = new User()
-   user.email = email
-   user.username = username
-   user.created_at = new Date().toISOString().slice(0, 19).replace('T', ' ')
+   const user = new User({
+      email: email,
+      username: username,
+      created_at: new Date().toISOString().slice(0, 19).replace('T', ' ')
+   })
 
    const savedUser = await saveUser(connection, user)
    if (!savedUser || !savedUser.id) {
       return Promise.reject('Could not create account.')
    }
 
-   const localAuth = new LocalAuth()
-   localAuth.user_id = savedUser.id
-   localAuth.password = UserAuth.generateHash(password)
+   const localAuth = new LocalAuth({
+      user_id: savedUser.id,
+      password: UserAuth.generateHash(password)
+   })
 
    const savedLocalAuth = await saveLocalAuth(connection, localAuth)
    if (!savedLocalAuth || !savedLocalAuth.id) {
@@ -131,8 +93,10 @@ module.exports = function(passport, logging) {
    passport.deserializeUser((id, next) => {
       const connection = database()
       connection.connect()
-      User.findById(connection, id, (err, user) => {
-         next(err, user)
+      User.findById(connection, id).then((user) => {
+         next(null, user)
+      }).catch((err) => {
+         next(err)
       })
 
       connection.end()
@@ -146,17 +110,16 @@ module.exports = function(passport, logging) {
    }, (request, email, password, done) => {
       process.nextTick(() => {
          const connection = database()
-         const callback = (err, response, flash) => {
-            connection.end()
-            done(err, response, flash)
-         }
 
          localSignup(connection, request, email, password).then((user) => {
             console.log('user:', user)
-            callback(null, user)
+            done(null, user)
          }).catch((error) => {
             console.log('error:', error)
-            callback(null, null, request.flash('signupMessage', error))
+            done(null, null, request.flash('signupMessage', error))
+         }).then(() => {
+            console.log("ending connection")
+            connection.end()
          })
       })
    })) // end passport-use
@@ -167,17 +130,16 @@ module.exports = function(passport, logging) {
       passReqToCallback: true
    }, (request, email, password, done) => {
       const connection = database()
-      const callback = (err, response, flash) => {
-         connection.end()
-         done(err, response, flash)
-      }
 
       process.nextTick(() => {
          localLogin(connection, request, email, password).then((user) => {
-            callback(null, user)
+            done(null, user)
+            console.log("Logged in!")
          }).catch(() => {
             const message = "Invalid email or password!"
-            callback(null, null, request.flash('loginMessage', message))
+            done(null, null, request.flash('loginMessage', message))
+         }).then(() => {
+            connection.end()
          })
       })
    }))

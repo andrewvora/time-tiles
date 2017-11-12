@@ -3,10 +3,11 @@
 const bcrypt = require('bcrypt-nodejs')
 
 module.exports = class UserAuth {
-  constructor() {
-    this.facebook = null
-    this.local = null
-    this.google = null
+
+  constructor({ facebook = null, local = null, google = null } = {}) {
+    this.facebook = facebook
+    this.local = local
+    this.google = google
   }
 
   static generateHash(password) {
