@@ -1,7 +1,7 @@
 'use strict'
 
-const controller = require('./controller.js');
+const controller = require('./controller.js')
 
 module.exports = function(config, logging) {
-   return controller(config, logging)
+    return controller(config, logging)
 }

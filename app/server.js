@@ -18,7 +18,7 @@ const app = express()
 const port = process.env.PORT || 4040
 
 // config ===============================
-require('../config/passport')(passport, logging);
+require('../config/passport')(passport, logging)
 
 app.use(helmet())
 app.use(cookieParser())
@@ -29,9 +29,9 @@ app.use(bodyParser.urlencoded({ extended: true }))
 app.set('view engine', 'ejs')
 
 app.use(session({
-  secret: config.session_secret ,
-  resave: true,
-  saveUninitialized: false
+    secret: config.session_secret,
+    resave: true,
+    saveUninitialized: false
 }))
 app.use(passport.initialize())
 app.use(passport.session())
@@ -42,9 +42,9 @@ require('./routes.js')(app, passport, security, logging)
 
 // launch ===============================
 app.listen(port, (err) => {
-  if(err) {
-    logging.error("Encountered error on startup:", err)
-  }
+    if (err) {
+        logging.error('Encountered error on startup:', err)
+    }
 
-  logging.info("Server running on port", port);
+    logging.info('Server running on port', port)
 })
