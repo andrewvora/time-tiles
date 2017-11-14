@@ -2,9 +2,9 @@
 
 const logging = require('../app/logging')
 const LocalStrategy = require('passport-local')
-const UserAuth = require('../app/models/user-auth')
-const LocalAuth = require('../app/models/local-auth')
-const User = require('../app/models/user')
+const UserAuth = require('../app/security/user-auth')
+const LocalAuth = require('../app/security/local-auth')
+const User = require('../app/users/user')
 const database = require('./database')
 
 async function findUserByEmail(connection, email) {
@@ -112,13 +112,10 @@ module.exports = function(passport, logging) {
          const connection = database()
 
          localSignup(connection, request, email, password).then((user) => {
-            console.log('user:', user)
             done(null, user)
          }).catch((error) => {
-            console.log('error:', error)
             done(null, null, request.flash('signupMessage', error))
          }).then(() => {
-            console.log("ending connection")
             connection.end()
          })
       })
@@ -134,7 +131,6 @@ module.exports = function(passport, logging) {
       process.nextTick(() => {
          localLogin(connection, request, email, password).then((user) => {
             done(null, user)
-            console.log("Logged in!")
          }).catch(() => {
             const message = "Invalid email or password!"
             done(null, null, request.flash('loginMessage', message))

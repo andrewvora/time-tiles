@@ -4,7 +4,7 @@
   "description": "Back end of the Time Tiles app",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "mocha app/**/**.spec.js",
     "start": "node index.js",
     "setup": "node scripts/setupdb.js"
   },
@@ -41,5 +41,10 @@
     "passport-google-oauth": "^1.0.0",
     "passport-local": "^1.0.0",
     "winston": "^2.4.0"
+  },
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "mocha": "^4.0.1",
+    "proxyquire": "^1.8.0"
   }
 }

@@ -5,9 +5,9 @@ const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt-nodejs')
 const database = require('../../config/database')
 
-const User = require('../models/user')
-const LocalAuth = require('../models/local-auth')
-const UserAuth = require('../models/user-auth')
+const User = require('../users/user')
+const LocalAuth = require('../security/local-auth')
+const UserAuth = require('../security/user-auth')
 
 async function findUser(connection, username) {
    return await User.findByEmail(connection, username)
@@ -24,26 +24,26 @@ async function validateLocalAuth(password, localAuth) {
 
 async function getToken(username, password) {
    const connection = database()
+   var result = null
 
    try {
       const user = await findUser(connection, username)
       const localAuth = await findLocalAuth(connection, user)
       const valid = await validateLocalAuth(password, localAuth)
 
-
-      const kosherUser = {
-         id: user.id,
-         username: user.username,
-         email: user.email
-      }
-
       if (valid) {
-         return jwt.sign(kosherUser, config.jwt_secret, {
+         const kosherUser = {
+            id: user.id,
+            username: user.username,
+            email: user.email
+         }
+
+         result = jwt.sign(kosherUser, config.jwt_secret, {
             expiresIn: '24h' // expires in 24 hours
          })
-      } else {
-         return null
       }
+
+      return result
    } catch (error) {
       return Promise.reject(error)
    } finally {
