@@ -1,3 +1,5 @@
 'use strict'
 
-require('./controller.js')
+module.exports = function() {
+    return require('./controller')()
+}

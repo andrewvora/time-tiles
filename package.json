@@ -1,7 +1,7 @@
 {
-  "name": "time-tiles-server",
+  "name": "time-tiles",
   "version": "1.0.0",
-  "description": "Back end of the Time Tiles app",
+  "description": "Time Tiles API and web app",
   "main": "index.js",
   "scripts": {
     "test": "mocha app/**/**.spec.js",
@@ -12,7 +12,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/andrewvora/time-tiles-server.git"
+    "url": "git+https://github.com/andrewvora/time-tiles.git"
   },
   "keywords": [
     "api"
@@ -20,13 +20,12 @@
   "author": "Andrew Vorakrajangthiti",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/andrewvora/time-tiles-server/issues"
+    "url": "https://github.com/andrewvora/time-tiles/issues"
   },
-  "homepage": "https://github.com/andrewvora/time-tiles-server#readme",
+  "homepage": "https://github.com/andrewvora/time-tiles#readme",
   "dependencies": {
     "bcrypt-nodejs": "0.0.3",
     "body-parser": "^1.18.2",
-    "connect-flash": "^0.1.1",
     "cookie-parser": "^1.4.3",
     "debug": "^3.1.0",
     "ejs": "^2.5.7",
@@ -38,10 +37,6 @@
     "method-override": "^2.3.10",
     "morgan": "^1.9.0",
     "mysql": "^2.15.0",
-    "passport": "^0.4.0",
-    "passport-facebook": "^2.1.1",
-    "passport-google-oauth": "^1.0.0",
-    "passport-local": "^1.0.0",
     "winston": "^2.4.0"
   },
   "devDependencies": {
