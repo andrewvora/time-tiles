@@ -10,13 +10,25 @@ module.exports = class User {
         this.created_at = null
     }
 
+    static isValidEmail(email) {
+        return email !== undefined && email.trim().length > 5 && /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(email)
+    }
+
+    static isValidPassword(password) {
+        return password !== undefined && password.trim().length >= 8
+    }
+
+    static isValidUsername(username) {
+        return username !== undefined && username.trim().length >= 4
+    }
+
     static findByUsername(database, username) {
         return new Promise((resolve, reject) => {
             database.query(`SELECT * FROM ?? WHERE username=? LIMIT 1`, [USERS_TABLE, username], (err, result) => {
                 if (err) {
                     reject(err)
                 } else {
-                    const createdUser = result[0] ? new User(result[0]) : undefined
+                    const createdUser = (result && result[0]) ? new User(result[0]) : undefined
                     resolve(createdUser)
                 }
             })
@@ -29,7 +41,7 @@ module.exports = class User {
                 if (err) {
                     reject(err)
                 } else {
-                    const createdUser = result[0] ? new User(result[0]) : undefined
+                    const createdUser = (result && result[0]) ? new User(result[0]) : undefined
                     resolve(createdUser)
                 }
             })
@@ -42,7 +54,7 @@ module.exports = class User {
                 if (err) {
                     reject(err)
                 } else {
-                    const createdUser = result[0] ? new User(result[0]) : undefined
+                    const createdUser = (result && result[0]) ? new User(result[0]) : undefined
                     resolve(createdUser)
                 }
             })

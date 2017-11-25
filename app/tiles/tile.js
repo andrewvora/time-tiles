@@ -21,14 +21,14 @@ module.exports = class Tile {
         this.updated_at = updated_at
     }
 
-    static findTileById(database, tileId) {
+    static findTileById(database, tileId, userId) {
         return new Promise((resolve, reject) => {
-            database.query(`SELECT * FROM ?? WHERE id=?`, [TILES_TABLE, tileId], (err, result) => {
+            const queryArgs = [TILES_TABLE, tileId, userId]
+            database.query(`SELECT * FROM ?? WHERE id=? AND user_id=?`, queryArgs, (err, result) => {
                 if (err) {
                     reject(new Error(err))
                 } else {
-                    const record = result ? result[0] : undefined
-                    const tile = new Tile(record)
+                    const tile = result ? new Tile(result[0]) : undefined
                     resolve(tile)
                 }
             })
@@ -44,8 +44,7 @@ module.exports = class Tile {
                     const tiles = []
                     if (result) {
                         result.forEach((item) => {
-                            const record = result ? result[0] : undefined
-                            const tile = new Tile(record)
+                            const tile = new Tile(item)
                             tiles.push(tile)
                         })
                     }
@@ -56,9 +55,10 @@ module.exports = class Tile {
         })
     }
 
-    static deleteTile(database, tileId) {
+    static deleteTile(database, tileId, userId) {
         return new Promise((resolve, reject) => {
-            database.query(`DELETE FROM ?? WHERE id=?`, [TILES_TABLE, tileId], (err, result) => {
+            const queryArgs = [TILES_TABLE, tileId, userId]
+            database.query(`DELETE FROM ?? WHERE id=?`, queryArgs, (err, result) => {
                 if (err) {
                     reject(new Error(err))
                 } else {
@@ -98,14 +98,14 @@ module.exports = class Tile {
                 if (err) {
                     reject(new Error(err))
                 } else {
-                    resolve(result)
+                    resolve(result !== undefined ? result.affectedRows : 0)
                 }
             })
         }
 
         return new Promise((resolve, reject) => {
             if (tile) {
-                if (tile.id !== 0) {
+                if (tile.id && tile.id !== 0) {
                     updateRecord(resolve, reject)
                 } else {
                     saveNewRecord(resolve, reject)

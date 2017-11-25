@@ -79,15 +79,15 @@ function verifyToken(token) {
     return new Promise((resolve, reject) => {
         if (!token) {
             reject(new Error('Empty token.'))
+        } else {
+            jwt.verify(token, config.jwt_secret, (err, decoded) => {
+                if (err || !decoded) {
+                    reject(err)
+                } else {
+                    resolve(decoded)
+                }
+            })
         }
-
-        jwt.verify(token, config.jwt_secret, (err, decoded) => {
-            if (err || !decoded) {
-                reject(err)
-            } else {
-                resolve(decoded)
-            }
-        })
     })
 }
 

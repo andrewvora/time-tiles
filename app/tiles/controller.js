@@ -5,8 +5,14 @@ const database = require('../../config/database')
 
 function handleGetTileByIdRoute(request, response) {
     const tileId = request.params.id
+    const user = request.user
 
-    getTileById(tileId)
+    if (!user) {
+        response.status(403).send()
+        return
+    }
+
+    getTileById(tileId, user.id)
         .then((tile) => {
             response.send(tile)
         })
@@ -16,11 +22,11 @@ function handleGetTileByIdRoute(request, response) {
         })
 }
 
-async function getTileById(id) {
+async function getTileById(id, userId) {
     const connection = database()
 
     try {
-        const tile = await Tile.findTileById(connection, id)
+        const tile = await Tile.findTileById(connection, id, userId)
         return tile
     } catch (err) {
         return Promise.reject(err)
@@ -31,6 +37,11 @@ async function getTileById(id) {
 
 function handleGetTilesRoute(request, response) {
     const user = request.user
+
+    if (!user) {
+        response.status(403).send()
+        return
+    }
 
     getTilesForUser(user.id)
         .then((tiles) => {
@@ -55,9 +66,13 @@ async function getTilesForUser(userId) {
 }
 
 function handlePostTileRoute(request, response) {
-    // TODO: use only certain input from request
     const tile = new Tile(request.body)
     const user = request.user
+
+    if (!user) {
+        response.status(403).send()
+        return
+    }
 
     saveTile(user, tile)
         .then((savedTile) => {
@@ -83,10 +98,28 @@ async function saveTile(user, tile) {
 }
 
 function handlePutTileRoute(request, response) {
-    const tileId = request.params.id
-    const tile = new Tile(request.body)
-    tile.id = tileId
+    const user = request.user
+    if (!user) {
+        response.status(403).send()
+        return
+    }
 
+    const tileId = request.params.id
+    if (!tileId) {
+        response.status(400).send()
+        return
+    }
+
+    const tile = {}
+    if (request.body.name) {
+        tile['name'] = request.body.name
+    }
+    if (request.body.design) {
+        tile['design'] = request.body.design
+    }
+    if (request.body.started) {
+        tile['started'] = request.body.started
+    }
     updateTile(tile)
         .then((updatedTile) => {
             response.send(updatedTile)
@@ -111,8 +144,19 @@ async function updateTile(tile) {
 
 function handleDeleteTileRoute(request, response) {
     const tileId = request.params.id
+    const user = request.user
 
-    deleteTile(tileId)
+    if (!user) {
+        response.status(403).send()
+        return
+    }
+
+    if (!tileId) {
+        response.status(400).send()
+        return
+    }
+
+    deleteTile(tileId, user.id)
         .then((success) => {
             const body = { deleted: success }
             response.status(204).send(body)
@@ -123,10 +167,10 @@ function handleDeleteTileRoute(request, response) {
         })
 }
 
-async function deleteTile(id) {
+async function deleteTile(id, userId) {
     const connection = database()
     try {
-        return Tile.deleteTile(connection, id)
+        return Tile.deleteTile(connection, id, userId)
     } catch (err) {
         return Promise.reject(err)
     } finally {

@@ -56,25 +56,31 @@ describe('Security Controller', () => {
 
     describe('Functions', () => {
         describe('isValidToken', () => {
-            it('should fail if token is undefined', () => {
-                controller().isValidToken(undefined).then(() => {}).catch((err) => {
-                    expect(err).to.be.false()
+            it('should fail if token is undefined', (done) => {
+                controller().isValidToken().then(() => {
+                    done(new Error('Error should have been thrown'))
+                }).catch((e) => {
+                    expect(e).to.exist()
+                    done()
                 })
             })
 
-            it('should fail if an error occurs', () => {
+            it('should fail if an error occurs', (done) => {
                 const token = 'fake-token'
                 const error = {}
                 mockJwt.verify = function(token, secret, next) {
                     next(error, null)
                 }
 
-                controller().isValidToken(token).then(() => {}).catch((err) => {
+                controller().isValidToken(token).then(() => {
+                    done(new Error('Error should have been thrown'))
+                }).catch((err) => {
                     expect(err).to.be.equal(error)
+                    done()
                 })
             })
 
-            it('should succeed if token gets decoded', () => {
+            it('should succeed if token gets decoded', (done) => {
                 const token = 'fake-token'
                 const decoded = {}
                 mockJwt.verify = function(token, secret, next) {
@@ -83,7 +89,10 @@ describe('Security Controller', () => {
 
                 controller().isValidToken(token).then((result) => {
                     expect(result).to.be.equal(decoded)
-                }).catch(() => {})
+                    done()
+                }).catch((e) => {
+                    done(e)
+                })
             })
         })
 
@@ -92,7 +101,7 @@ describe('Security Controller', () => {
             const localAuth = { password: 'password' }
             const token = 'fake-token'
 
-            it('should return a token if successful', () => {
+            it('should return a token if successful', (done) => {
                 mockUser.findByEmail = function(connection, username) {
                     return Promise.resolve(user)
                 }
@@ -107,18 +116,24 @@ describe('Security Controller', () => {
                 controller().getToken(user.username, localAuth.password)
                     .then((result) => {
                         expect(result).to.be.equal(token)
+                        done()
                     })
-                    .catch(() => {})
+                    .catch(() => {
+                        done(new Error('Error thrown'))
+                    })
             })
 
-            it('fails if no user is found', () => {
+            it('fails if no user is found', (done) => {
                 mockUser.findByEmail = function(connection, username) {
                     return Promise.resolve(undefined)
                 }
                 controller().getToken('username', 'password')
-                    .then(() => {})
+                    .then(() => {
+                        done(new Error('Error should have been thrown'))
+                    })
                     .catch((err) => {
                         expect(err).to.exist()
+                        done()
                     })
             })
 

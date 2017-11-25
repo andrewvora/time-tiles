@@ -43,19 +43,22 @@ describe('LocalAuth', () => {
 
     describe('Functions', () => {
         describe('findByUserId', () => {
-            it('fails if an error occurs', () => {
+            it('fails if an error occurs', (done) => {
                 mockDatabase.query = function(query, args, callback) {
                     callback(new Error(), null)
                 }
 
                 LocalAuth.findByUserId(mockDatabase, 1)
-                    .then(() => { expect(true).to.be.false() })
+                    .then(() => {
+                        done(new Error('Error should have been thrown'))
+                    })
                     .catch((err) => {
                         expect(err).to.exist()
+                        done()
                     })
             })
 
-            it('handles an undefined result', () => {
+            it('handles an undefined result', (done) => {
                 mockDatabase.query = function(query, args, callback) {
                     callback(null, undefined)
                 }
@@ -63,14 +66,17 @@ describe('LocalAuth', () => {
                 LocalAuth.findByUserId(mockDatabase, 1)
                     .then((result) => {
                         expect(result).to.be.undefined()
+                        done()
                     })
-                    .catch(() => {})
+                    .catch((e) => {
+                        done(e)
+                    })
             })
 
-            it('binds result if it succeeds', () => {
+            it('binds result if it succeeds', (done) => {
                 const result = { id: 1, user_id: 2, password: 'password' }
                 mockDatabase.query = function(query, args, callback) {
-                    callback(null, undefined)
+                    callback(null, [result])
                 }
 
                 LocalAuth.findByUserId(mockDatabase, 2)
@@ -80,28 +86,34 @@ describe('LocalAuth', () => {
                         expect(record.id).to.be.equal(result.id)
                         expect(record.user_id).to.be.equal(result.user_id)
                         expect(record.password).to.be.equal(result.password)
+                        done()
                     })
-                    .catch(() => {})
+                    .catch((e) => {
+                        done(e)
+                    })
             })
         })
 
         describe('save', () => {
-            it('fails if there is an error', () => {
+            it('fails if there is an error', (done) => {
                 mockDatabase.query = function(query, args, callback) {
                     callback(new Error(), undefined)
                 }
 
                 LocalAuth.save(mockDatabase, {})
-                    .then(() => { expect(true).to.be.false() })
+                    .then(() => {
+                        expect(true).to.be.false()
+                        done(new Error('Error should have been thrown'))
+                    })
                     .catch((err) => {
                         expect(err).to.exist()
+                        done()
                     })
             })
 
-            it('attaches ID if it succeeds', () => {
-                const result = [{ id: 1 }]
+            it('attaches ID if it succeeds', (done) => {
                 mockDatabase.query = function(query, args, callback) {
-                    callback(null, result)
+                    callback(null, { insertId: 1 })
                 }
 
                 const localAuth = {}
@@ -110,8 +122,11 @@ describe('LocalAuth', () => {
                         expect(result).to.exist()
                         expect(result.id).to.be.equal(1)
                         expect(result).to.equal(localAuth)
+                        done()
                     })
-                    .catch(() => {})
+                    .catch((e) => {
+                        done(e)
+                    })
             })
         })
     })

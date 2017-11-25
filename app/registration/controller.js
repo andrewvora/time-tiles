@@ -29,6 +29,20 @@ function handleRegistrationRoute(request, response) {
 }
 
 async function register(username, email, password) {
+    const validityReport = {
+        username: User.isValidUsername(username),
+        email: User.isValidEmail(email),
+        password: User.isValidPassword(password)
+    }
+    const hasInvalidParams =
+            !validityReport.username ||
+            !validityReport.email ||
+            !validityReport.password
+
+    if (hasInvalidParams) {
+        return Promise.reject(new Error(JSON.stringify(validityReport)))
+    }
+
     const connection = database()
     let user
     try {

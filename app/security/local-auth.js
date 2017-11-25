@@ -15,7 +15,7 @@ module.exports = class LocalAuth {
                 if (err) {
                     reject(err)
                 } else {
-                    const createdUserRecord = result[0] ? new LocalAuth(result[0]) : undefined
+                    const createdUserRecord = (result && result[0]) ? new LocalAuth(result[0]) : undefined
                     resolve(createdUserRecord)
                 }
             })
