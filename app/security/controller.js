@@ -33,12 +33,12 @@ function handleAuthRoute(request, response) {
         })
 }
 
-async function getToken(username, password) {
+async function getToken(email, password) {
     const connection = database()
     var result = null
 
     try {
-        const user = await findUser(connection, username)
+        const user = await findUser(connection, email)
         const localAuth = await findLocalAuth(connection, user)
         const valid = await validateLocalAuth(password, localAuth)
 
@@ -62,8 +62,8 @@ async function getToken(username, password) {
     }
 }
 
-async function findUser(connection, username) {
-    return User.findByEmail(connection, username)
+async function findUser(connection, email) {
+    return User.findByEmail(connection, email)
 }
 
 async function findLocalAuth(connection, user) {

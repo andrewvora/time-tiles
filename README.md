@@ -20,7 +20,8 @@ In `app/config/config.json` have the following content:
       "host": "db host",
       "user": "db user",
       "password": "db password",
-      "database": "db database name"
+      "database": "db database name",
+      "type": "define what sort of environment this db is in"
   },
   "secure_mysql": {
     "host": "db host",

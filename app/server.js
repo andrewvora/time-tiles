@@ -42,3 +42,5 @@ app.listen(port, (err) => {
 
     logging.info('Server running on port', port)
 })
+
+module.exports = app
