@@ -8,11 +8,13 @@ chai.use(dirtyChai)
 chai.use(chaiHttp)
 const expect = chai.expect
 
+// scenarios
+// only run integration tests in test environments
 const config = require('../config/config.json')
 if (config['mysql'].type === 'test') {
     const database = require('../config/database')
     const proxyquire = require('proxyquire')
-    const server = proxyquire('../app/server', {
+    const server = proxyquire('../app', {
         'morgan': () => { return require('morgan')('tiny', { skip: () => { return true } }) }
     })
 
@@ -25,11 +27,7 @@ if (config['mysql'].type === 'test') {
                     done(err)
                 } else {
                     connection.query(`DELETE FROM ?? WHERE 1=1`, ['users'], (err, results) => {
-                        if (err) {
-                            done(err)
-                        } else {
-                            done()
-                        }
+                        done(err)
                     })
                     connection.end()
                 }
@@ -37,6 +35,7 @@ if (config['mysql'].type === 'test') {
         })
 
         describe('Tile Routes', () => {
+            let createdTile
             let token
             const user = {
                 name: 'tester',
@@ -77,36 +76,62 @@ if (config['mysql'].type === 'test') {
                         expect(response.body.name).to.equal(postBody.name)
                         expect(response.body.design).to.equal(postBody.design)
                         expect(response.body.started).to.equal(postBody.started)
+
+                        createdTile = response.body
                         done(err)
                     })
             })
 
-            it('supports updating tiles', () => {
+            it('supports updating tiles', (done) => {
+                const putBody = {
+                    name: 'updated tile',
+                    design: '#FFF',
+                    started: 'some-timestamp'
+                }
 
+                chai.request(server)
+                    .put('/api/v1/tiles/' + createdTile.id)
+                    .set('Authorization', token)
+                    .send(putBody)
+                    .end((err, response) => {
+                        expect(response).to.have.status(200)
+                        expect(response.body).to.be.instanceof(Object)
+                        done(err)
+                    })
             })
 
-            it('supports deleting tiles', () => {
-
+            it('supports retrieving tiles', (done) => {
+                chai.request(server)
+                    .get('/api/v1/tiles')
+                    .set('Authorization', token)
+                    .send()
+                    .end((err, response) => {
+                        expect(response).to.have.status(200)
+                        done(err)
+                    })
             })
 
-            it('supports retrieving tiles', () => {
-
+            it('supports deleting tiles', (done) => {
+                chai.request(server)
+                    .delete('/api/v1/tiles/' + createdTile.id)
+                    .set('Authorization', token)
+                    .send()
+                    .end((err, response) => {
+                        expect(response).to.have.status(204)
+                        done(err)
+                    })
             })
         })
 
-        describe('Authentication Routes', () => {
-            it('can create new accounts', () => {
-
-            })
-
-            it('gives tokens to authenticated requests', () => {
-
-            })
-        })
-
-        describe('Documentation', () => {
+        describe('Documentation', (done) => {
             it('returns an HTML page at the root route', () => {
-
+                chai.request(server)
+                    .get('/')
+                    .send()
+                    .end((err, response) => {
+                        expect(response).to.have.status(200)
+                        done(err)
+                    })
             })
         })
     })

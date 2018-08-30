@@ -98,7 +98,7 @@ module.exports = class Tile {
                 if (err) {
                     reject(new Error(err))
                 } else {
-                    resolve(result !== undefined ? result.affectedRows : 0)
+                    resolve(result && result.affectedRows === 1 ? tile : {})
                 }
             })
         }

@@ -118,7 +118,9 @@ function handlePutTileRoute(request, response) {
         return
     }
 
-    const tile = {}
+    const tile = {
+        'id': tileId
+    }
 
     if (request.body.name) {
         tile['name'] = request.body.name
@@ -132,7 +134,7 @@ function handlePutTileRoute(request, response) {
 
     updateTile(tile)
         .then((updatedTile) => {
-            response.send(updatedTile)
+            response.status(200).send(updatedTile)
         })
         .catch((err) => {
             const msg = { message: err.message }

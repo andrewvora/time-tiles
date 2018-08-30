@@ -296,6 +296,12 @@ describe('Tiles Controller', () => {
                 mockTile.save = (db, tile) => {
                     return tile
                 }
+                response.status = (status) => {
+                    expect(status).to.equal(200)
+                    return {
+                        send: response.send
+                    }
+                }
                 response.send = (body) => {
                     expect(body.name).to.equal(request.body.name)
                     expect(body.design).to.equal(request.body.design)

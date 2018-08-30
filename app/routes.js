@@ -12,7 +12,7 @@ const tiles = require('./tiles')()
 module.exports = function(app, registration, security, logging) {
     // home ==============================
     app.get('/', (request, response) => {
-        response.render('index.ejs')
+        response.render('index.ejs', { user: undefined })
     })
 
     // api ==============================a
