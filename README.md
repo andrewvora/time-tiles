@@ -15,7 +15,7 @@ Have the following environment variables set for the app to run:
 
 ```bash
 
-DB_HOST=https://yourdbhost:port/db
+DB_HOST=yourdbhost
 DB_USER=username
 DB_PASSWORD=db_password
 DB_NAME=db_database_name
@@ -30,7 +30,7 @@ SESSION_SECRET=othersecret
 
 ### Configuring the Remote Database
 
-Run the following command and give information as requested
+Run the following command with the proper environment variables set
 
 ```
 npm run setup
