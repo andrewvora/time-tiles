@@ -1,5 +1,7 @@
 # Time Tiles
 
+[![Build Status](https://travis-ci.org/andrewvora/time-tiles.svg?branch=master)](https://travis-ci.org/andrewvora/time-tiles)
+
 ## Set Up
 
 ### Install Dependencies
