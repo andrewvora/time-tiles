@@ -1,58 +1,20 @@
 'use strict'
 
 const mysql = require('mysql')
-const readline = require('readline')
-const input = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-})
 
-const DB_NAME = 'time_tiles'
+const DB_NAME = process.env.TT_DB_NAME
 const USERS_TABLE = 'users'
 const LOGIN_TABLE = 'login'
 const GOOGLE_LOGIN_TABLE = 'google_login'
 const FACEBOOK_LOGIN_TABLE = 'facebook_login'
 const TILES_TABLE = 'tiles'
 
-// collect parameters
-function getHost(next) {
-    input.question('Enter MySQL host: ', (answer) => {
-        process.env['MYSQL_HOST'] = answer
-        next()
-    })
-}
-
-function getUser(next) {
-    input.question('Enter MYSQL user: ', (answer) => {
-        process.env['MYSQL_USER'] = answer
-        next()
-    })
-}
-
-function getPassword(next) {
-    input.question('Enter MYSQL password: ', (answer) => {
-        process.env['MYSQL_PASSWORD'] = answer
-        next()
-    })
-}
-
-function getConnectionInfo(next) {
-    getHost(() => {
-        getUser(() => {
-            getPassword(() => {
-                input.close()
-                next()
-            })
-        })
-    })
-}
-
 function setUpDatabase(done) {
     // create the connection
     const connection = mysql.createConnection({
-        host: process.env.MYSQL_HOST,
-        user: process.env.MYSQL_USER,
-        password: process.env.MYSQL_PASSWORD
+        host: process.env.TT_DB_HOST,
+        user: process.env.TT_DB_USER,
+        password: process.env.TT_DB_PASSWORD
     })
 
     // create tables
@@ -186,9 +148,7 @@ function createTilesTable(connection, done) {
 }
 
 (function run() {
-    getConnectionInfo(() => {
-        setUpDatabase(() => {
-            console.log('Execution finished. Terminating...\n')
-        })
+    setUpDatabase(() => {
+        console.log('Execution finished. Terminating...\n')
     })
 })()
