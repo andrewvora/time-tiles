@@ -8,7 +8,6 @@
 
 ```
 npm install
-
 ```
 
 ### Setting Up Local Database for Dev
@@ -36,7 +35,6 @@ Run the following command with the proper environment variables set
 
 ```
 npm run setup
-
 ```
 
 ## Running the Server
@@ -45,13 +43,10 @@ To simply get the server running,
 
 ```
 npm start
-
 ```
 
 To get the server running with linting and tests,
 
 ```
-
 npm run full-start
-
 ```
