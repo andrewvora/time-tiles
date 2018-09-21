@@ -8,13 +8,13 @@ const morgan = require('morgan')
 const logging = require('./logging')
 const security = require('./security')()
 const registration = require('./registration')()
-const config = require('../config/config.json')
 
 const cookieParser = require('cookie-parser')
 const bodyParser = require('body-parser')
 
 const app = express()
 const port = process.env.PORT || 4040
+const SESSION_SECRET = process.env.TT_SESSION_SECRET
 
 // config ===============================
 app.use(helmet())
@@ -26,7 +26,7 @@ app.use(bodyParser.urlencoded({ extended: true }))
 app.set('view engine', 'ejs')
 
 app.use(session({
-    secret: config.session_secret,
+    secret: SESSION_SECRET,
     resave: true,
     saveUninitialized: false
 }))

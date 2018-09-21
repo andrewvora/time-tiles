@@ -12,9 +12,6 @@ const mockJwt = {
     'verify': undefined,
     'sign': undefined
 }
-const mockConfig = {
-    'jwt_secret': undefined
-}
 const mockDatabase = function() {
     return {
         end: function() {}
@@ -35,7 +32,6 @@ const mockUserAuth = class MockUserAuth {
 
 const controller = proxyquire('./controller', {
     'jsonwebtoken': mockJwt,
-    '../../config/config.json': mockConfig,
     '../../config/database': mockDatabase,
     '../users/user': mockUser,
     '../security/local-auth': mockLocalAuth,

@@ -10,15 +10,14 @@ const expect = chai.expect
 
 // scenarios
 // only run integration tests in test environments
-const config = require('../config/config.json')
-if (config['mysql'].type === 'test') {
+if (process.env.NODE_ENV !== 'production') {
     const database = require('../config/database')
     const proxyquire = require('proxyquire')
     const server = proxyquire('../app', {
         'morgan': () => { return require('morgan')('tiny', { skip: () => { return true } }) }
     })
 
-    describe('Time Tiles Server', () => {
+    describe('Time Tiles Server', (done) => {
         beforeEach((done) => {
             const connection = database()
             connection.query(`DELETE FROM ?? WHERE 1=1`, ['tiles'], (err, results) => {
@@ -133,6 +132,10 @@ if (config['mysql'].type === 'test') {
                         done(err)
                     })
             })
+        })
+
+        after((done) => {
+            done()
         })
     })
 } else {

@@ -11,31 +11,21 @@ npm install
 
 ### Setting Up Local Database for Dev
 
-In `app/config/config.json` have the following content:
+Have the following environment variables set for the app to run:
 
-```json
+```bash
 
-{
-  "mysql": {
-      "host": "db host",
-      "user": "db user",
-      "password": "db password",
-      "database": "db database name",
-      "type": "define what sort of environment this db is in"
-  },
-  "secure_mysql": {
-    "host": "db host",
-    "user": "db user",
-    "password": "db password",
-    "database": "db database name"
-  },
-  "jwt_secret": "secret for JWT tokens",
-  "session_secret": "secret for session storage"
-}
+DB_HOST=https://yourdbhost:port/db
+DB_USER=username
+DB_PASSWORD=db_password
+DB_NAME=db_database_name
+JWT_TOKEN=somesecret
+SESSION_SECRET=othersecret
 
 ```
 
-`mysql` is for app-related database operations. `secure_mysql` is for auth-related database operations.
+
+`DB` is for app-related database operations. `SECURE_DB` is for auth-related database operations.
 
 
 ### Configuring the Remote Database

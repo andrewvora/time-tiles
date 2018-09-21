@@ -1,12 +1,13 @@
 'use strict'
 
-const config = require('../../config/config.json')
 const jwt = require('jsonwebtoken')
 const database = require('../../config/database')
 
 const User = require('../users/user')
 const LocalAuth = require('../security/local-auth')
 const UserAuth = require('../security/user-auth')
+
+const JWT_SECRET = process.env.TT_JWT_TOKEN
 
 function handleTokenValidation(request, response, next) {
     const token = request.headers.authorization
@@ -49,7 +50,7 @@ async function getToken(email, password) {
                 email: user.email
             }
 
-            result = jwt.sign(kosherUser, config.jwt_secret, {
+            result = jwt.sign(kosherUser, JWT_SECRET, {
                 expiresIn: '24h' // expires in 24 hours
             })
         }
@@ -80,7 +81,7 @@ function verifyToken(token) {
         if (!token) {
             reject(new Error('Empty token.'))
         } else {
-            jwt.verify(token, config.jwt_secret, (err, decoded) => {
+            jwt.verify(token, JWT_SECRET, (err, decoded) => {
                 if (err || !decoded) {
                     reject(err)
                 } else {
